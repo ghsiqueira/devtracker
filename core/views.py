@@ -9,12 +9,32 @@ from django.contrib import messages
 @login_required
 def project_list(request):
     projects = Project.objects.filter(user=request.user)
-    return render(request, 'project_list.html', {'projects': projects})
+    
+    search_query = request.GET.get('q', '')
+    if search_query:
+        projects = projects.filter(title__icontains=search_query) 
+
+    return render(request, 'project_list.html', {'projects': projects, 'search_query': search_query})
 
 @login_required
 def project_detail(request, id):
     project = get_object_or_404(Project, id=id, user=request.user)
-    return render(request, 'project_detail.html', {'project': project})
+    
+    tasks = project.tasks.all().order_by('is_completed', '-id') 
+    
+    filter_status = request.GET.get('filter')
+    if filter_status == 'pending':
+        tasks = tasks.filter(is_completed=False)
+    elif filter_status == 'completed':
+        tasks = tasks.filter(is_completed=True)
+    elif filter_status == 'high':
+        tasks = tasks.filter(priority='H')
+
+    return render(request, 'project_detail.html', {
+        'project': project, 
+        'tasks': tasks,     
+        'filter': filter_status 
+    })
 
 @login_required
 def project_create(request):
