@@ -38,9 +38,17 @@ class Project(models.Model):
         return int((completed / total_tasks) * 100)
 
 class Task(models.Model):
+    PRIORITY_CHOICES = [
+        ('H', 'High'),
+        ('M', 'Medium'),
+        ('L', 'Low'),
+    ]
+    
     project = models.ForeignKey(Project, related_name='tasks', on_delete=models.CASCADE)
     title = models.CharField(max_length=200)
     is_completed = models.BooleanField(default=False)
+    priority = models.CharField(max_length=1, choices=PRIORITY_CHOICES, default='M')
+    due_date = models.DateField(null=True, blank=True)
 
     def __str__(self):
         return self.title
