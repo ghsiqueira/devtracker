@@ -24,13 +24,33 @@
           <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
-          <ul class="navbar-nav ms-auto">
-            <li class="nav-item">
-              <a class="nav-link active" href="/">My Projects</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="/admin">Admin</a>
-            </li>
+          <ul class="navbar-nav ms-auto align-items-center">
+            {% if user.is_authenticated %}
+                <li class="nav-item me-3">
+                    <span class="navbar-text text-light">
+                        <i class="bi bi-person-circle me-1"></i> {{ user.username }}
+                    </span>
+                </li>
+                <li class="nav-item">
+                    <form action="{% url 'logout' %}" method="post" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-light btn-sm">
+                            <i class="bi bi-box-arrow-right"></i> Logout
+                        </button>
+                    </form>
+                </li>
+            {% else %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'login' %}">
+                        <i class="bi bi-box-arrow-in-right"></i> Login
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link btn btn-primary text-white ms-2 px-3" href="{% url 'signup' %}">
+                        Sign Up
+                    </a>
+                </li>
+            {% endif %}
           </ul>
         </div>
       </div>
