@@ -4,6 +4,7 @@ from .forms import TaskForm, ProjectForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
+from django.contrib import messages
 
 @login_required
 def project_list(request):
@@ -23,6 +24,14 @@ def project_create(request):
             project = form.save(commit=False)
             project.user = request.user
             project.save()
+            
+            leveled_up = request.user.profile.gain_xp(50)
+            request.user.profile.save()
+            if leveled_up:
+                messages.success(request, f"🎉 LEVEL UP! You reached Level {request.user.profile.level}!")
+            else:
+                messages.success(request, "Project created! (+50 XP)")
+
             return redirect('project_list')
     else:
         form = ProjectForm()
@@ -48,6 +57,16 @@ def task_create(request, project_id):
 @login_required
 def task_complete(request, id):
     task = get_object_or_404(Task, id=id, project__user=request.user)
+
+    if not task.is_completed:
+        leveled_up = request.user.profile.gain_xp(10)
+        if leveled_up:
+            messages.success(request, f"🎉 LEVEL UP! You reached Level {request.user.profile.level}!")
+    else:
+        request.user.profile.gain_xp(-10) 
+        
+    request.user.profile.save()
+    
     task.is_completed = not task.is_completed
     task.save()
     return redirect('project_detail', id=task.project.id)

@@ -1,5 +1,24 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    xp = models.IntegerField(default=0)
+    level = models.IntegerField(default=1)
+
+    def __str__(self):
+        return f"{self.user.username} - Level {self.level}"
+
+    def gain_xp(self, amount):
+        self.xp += amount
+        new_level = 1 + (self.xp // 100)
+        
+        if new_level > self.level:
+            self.level = new_level
+            return True 
+        return False
 
 class Project(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -25,3 +44,15 @@ class Task(models.Model):
 
     def __str__(self):
         return self.title
+
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        Profile.objects.create(user=instance)
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    try:
+        instance.profile.save()
+    except:
+        Profile.objects.create(user=instance)
