@@ -1,27 +1,27 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-class Projeto(models.Model):
-    usuario = models.ForeignKey(User, on_delete=models.CASCADE)
-    titulo = models.CharField(max_length=100)
-    descricao = models.TextField(blank=True, null=True)
-    criado_em = models.DateTimeField(auto_now_add=True)
+class Project(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    title = models.CharField(max_length=100)
+    description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.titulo
+        return self.title
 
     @property
-    def progresso(self):
-        total_tarefas = self.tarefas.count()
-        if total_tarefas == 0:
+    def progress(self):
+        total_tasks = self.tasks.count()
+        if not total_tasks:
             return 0
-        concluidas = self.tarefas.filter(concluida=True).count()
-        return int((concluidas / total_tarefas) * 100)
+        completed = self.tasks.filter(is_completed=True).count()
+        return int((completed / total_tasks) * 100)
 
-class Tarefa(models.Model):
-    projeto = models.ForeignKey(Projeto, related_name='tarefas', on_delete=models.CASCADE)
-    titulo = models.CharField(max_length=200)
-    concluida = models.BooleanField(default=False)
+class Task(models.Model):
+    project = models.ForeignKey(Project, related_name='tasks', on_delete=models.CASCADE)
+    title = models.CharField(max_length=200)
+    is_completed = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.titulo
+        return self.title

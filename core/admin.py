@@ -1,12 +1,12 @@
 from django.contrib import admin
-from .models import Projeto, Tarefa
+from .models import Project, Task
 
-class TarefaInline(admin.TabularInline):
-    model = Tarefa
+class TaskInline(admin.TabularInline):
+    model = Task
     extra = 1
 
-class ProjetoAdmin(admin.ModelAdmin):
-    inlines = [TarefaInline]
+class ProjectAdmin(admin.ModelAdmin):
+    inlines = [TaskInline]
 
-admin.site.register(Projeto, ProjetoAdmin)
-admin.site.register(Tarefa)
+admin.site.register(Project, ProjectAdmin)
+admin.site.register(Task)
