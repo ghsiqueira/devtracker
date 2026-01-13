@@ -63,3 +63,44 @@ def signup(request):
         form = UserCreationForm()
     
     return render(request, 'registration/signup.html', {'form': form})
+
+@login_required
+def project_update(request, id):
+    project = get_object_or_404(Project, id=id, user=request.user)
+    if request.method == 'POST':
+        form = ProjectForm(request.POST, instance=project)
+        if form.is_valid():
+            form.save()
+            return redirect('project_detail', id=project.id)
+    else:
+        form = ProjectForm(instance=project)
+    return render(request, 'project_form.html', {'form': form})
+
+@login_required
+def project_delete(request, id):
+    project = get_object_or_404(Project, id=id, user=request.user)
+    if request.method == 'POST':
+        project.delete()
+        return redirect('project_list')
+    return render(request, 'confirm_delete.html', {'object': project, 'type': 'Project'})
+
+@login_required
+def task_update(request, id):
+    task = get_object_or_404(Task, id=id, project__user=request.user)
+    if request.method == 'POST':
+        form = TaskForm(request.POST, instance=task)
+        if form.is_valid():
+            form.save()
+            return redirect('project_detail', id=task.project.id)
+    else:
+        form = TaskForm(instance=task)
+    return render(request, 'task_form.html', {'form': form, 'project': task.project})
+
+@login_required
+def task_delete(request, id):
+    task = get_object_or_404(Task, id=id, project__user=request.user)
+    project_id = task.project.id
+    if request.method == 'POST':
+        task.delete()
+        return redirect('project_detail', id=project_id)
+    return render(request, 'confirm_delete.html', {'object': task, 'type': 'Task'})
