@@ -84,7 +84,8 @@ pip install -r requirements.txt
 python manage.py migrate
 
 # 7. Inicie o Servidor
-python manage.py runserver```
+python manage.py runserver
+```
 
 Acesse em: http://127.0.0.1:8000
 
