@@ -1,23 +1,37 @@
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import Project, Task
+from .forms import TaskForm, ProjectForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
-from .models import Project, Task
-from .forms import TaskForm, ProjectForm
 
 @login_required
 def project_list(request):
-    projects = Project.objects.all()
+    projects = Project.objects.filter(user=request.user)
     return render(request, 'project_list.html', {'projects': projects})
 
 @login_required
 def project_detail(request, id):
-    project = get_object_or_404(Project, id=id)
+    project = get_object_or_404(Project, id=id, user=request.user)
     return render(request, 'project_detail.html', {'project': project})
 
 @login_required
+def project_create(request):
+    if request.method == 'POST':
+        form = ProjectForm(request.POST)
+        if form.is_valid():
+            project = form.save(commit=False)
+            project.user = request.user
+            project.save()
+            return redirect('project_list')
+    else:
+        form = ProjectForm()
+
+    return render(request, 'project_form.html', {'form': form})
+
+@login_required
 def task_create(request, project_id):
-    project = get_object_or_404(Project, id=project_id)
+    project = get_object_or_404(Project, id=project_id, user=request.user)
     
     if request.method == 'POST':
         form = TaskForm(request.POST)
@@ -33,31 +47,17 @@ def task_create(request, project_id):
 
 @login_required
 def task_complete(request, id):
-    task = get_object_or_404(Task, id=id)
-    task.is_completed = not task.is_completed 
+    task = get_object_or_404(Task, id=id, project__user=request.user)
+    task.is_completed = not task.is_completed
     task.save()
     return redirect('project_detail', id=task.project.id)
-
-@login_required
-def project_create(request):
-    if request.method == 'POST':
-        form = ProjectForm(request.POST)
-        if form.is_valid():
-            project = form.save(commit=False)
-            project.user = request.user 
-            project.save()
-            return redirect('project_list')
-    else:
-        form = ProjectForm()
-
-    return render(request, 'project_form.html', {'form': form})
 
 def signup(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            login(request, user) 
+            login(request, user)
             return redirect('project_list')
     else:
         form = UserCreationForm()
