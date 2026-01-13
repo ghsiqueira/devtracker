@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Project, Task
-from .forms import TaskForm
+from .forms import TaskForm, ProjectForm
 
 def project_list(request):
     projects = Project.objects.all()
@@ -30,3 +30,16 @@ def task_complete(request, id):
     task.is_completed = not task.is_completed 
     task.save()
     return redirect('project_detail', id=task.project.id)
+
+def project_create(request):
+    if request.method == 'POST':
+        form = ProjectForm(request.POST)
+        if form.is_valid():
+            project = form.save(commit=False)
+            project.user = request.user 
+            project.save()
+            return redirect('project_list')
+    else:
+        form = ProjectForm()
+
+    return render(request, 'project_form.html', {'form': form})
