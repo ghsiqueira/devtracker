@@ -1,24 +1,13 @@
-# Python (Arquivos compilados que não servem pra nada)
 __pycache__/
 *.py[cod]
 *$py.class
-
-# Django (Banco de dados local e logs)
 *.log
 db.sqlite3
 db.sqlite3-journal
-
-# Variáveis de ambiente e segredos (Segurança)
 .env
-
-# Ambiente Virtual (Sua pasta venv é gigante e só serve pro seu PC)
 venv/
 env/
-
-# IDE / Editores (Configurações do seu VS Code)
 .vscode/
 .idea/
-
-# Arquivos de sistema operacional
 .DS_Store
 Thumbs.db

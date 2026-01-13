@@ -10,10 +10,37 @@
 <div class="card shadow-sm border-0 mb-4">
     <div class="card-body">
         <div class="d-flex justify-content-between align-items-start">
-            <div>
-                <h2 class="fw-bold text-primary mb-0">{{ project.title }}</h2>
-                <p class="text-muted mt-2 mb-0">{{ project.description }}</p>
+            <div style="width: 85%;">
+                <h2 class="fw-bold text-primary mb-1">
+                    {{ project.title }}
+                </h2>
+                
+                <div class="mb-3">
+                    <span class="badge bg-light text-dark border">
+                        <i class="bi bi-list-task me-1"></i> {{ project.tasks.count }} Total Tasks
+                    </span>
+                    <span class="badge bg-light text-dark border ms-1">
+                        <i class="bi bi-funnel me-1"></i> {{ tasks|length }} Showing
+                    </span>
+                </div>
+
+                <div id="desc-container">
+                    <div id="desc-short" class="text-muted">
+                        {{ project.description|truncatechars:150 }}
+                        {% if project.description|length > 150 %}
+                            <a href="#" onclick="toggleDesc(event)" class="text-primary small text-decoration-none ms-1 fw-bold">Read more</a>
+                        {% endif %}
+                    </div>
+                    
+                    {% if project.description|length > 150 %}
+                    <div id="desc-full" class="text-muted d-none">
+                        {{ project.description|linebreaksbr }}
+                        <a href="#" onclick="toggleDesc(event)" class="text-primary small text-decoration-none ms-1 fw-bold">Read less</a>
+                    </div>
+                    {% endif %}
+                </div>
             </div>
+
             <div class="btn-group">
                 <a href="{% url 'project_update' project.id %}" class="btn btn-outline-secondary btn-sm" title="Edit Project">
                     <i class="bi bi-pencil"></i>
@@ -27,11 +54,10 @@
         <div class="mt-4">
             <div class="d-flex justify-content-between small text-muted mb-1">
                 <span>Progress</span>
-                <span>{{ project.tasks.count }} Tasks</span>
+                <span>{{ project.progress }}%</span>
             </div>
-            <div class="progress" style="height: 10px;">
+            <div class="progress" style="height: 8px;">
                 <div class="progress-bar {% if project.progress == 100 %}bg-success{% else %}bg-primary{% endif %}" 
-                     role="progressbar" 
                      style="width: {{ project.progress }}%">
                 </div>
             </div>
@@ -40,25 +66,42 @@
 </div>
 
 <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-3 gap-3">
-    <div class="d-flex align-items-center gap-3">
-        <h4 class="mb-0">Tasks</h4>
+    
+    <div class="d-flex gap-2 flex-wrap">
         <div class="btn-group btn-group-sm">
-            <a href="?filter=all" class="btn btn-outline-secondary {% if not filter or filter == 'all' %}active{% endif %}">All</a>
-            <a href="?filter=pending" class="btn btn-outline-secondary {% if filter == 'pending' %}active{% endif %}">Pending</a>
-            <a href="?filter=high" class="btn btn-outline-secondary {% if filter == 'high' %}active{% endif %}">High Priority</a>
-            <a href="?filter=completed" class="btn btn-outline-secondary {% if filter == 'completed' %}active{% endif %}">Completed</a>
+            <a href="?filter=all&sort={{ sort }}" class="btn btn-outline-secondary {% if not filter or filter == 'all' %}active{% endif %}">All</a>
+            <a href="?filter=pending&sort={{ sort }}" class="btn btn-outline-secondary {% if filter == 'pending' %}active{% endif %}">Pending</a>
+            <a href="?filter=overdue&sort={{ sort }}" class="btn btn-outline-danger {% if filter == 'overdue' %}active{% endif %}">Overdue!</a>
+            <a href="?filter=completed&sort={{ sort }}" class="btn btn-outline-secondary {% if filter == 'completed' %}active{% endif %}">Done</a>
+        </div>
+
+        <div class="dropdown">
+            <button class="btn btn-sm btn-outline-dark dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                <i class="bi bi-sort-down"></i> Sort
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item {% if sort == '-id' %}active{% endif %}" href="?sort=-id&filter={{ filter }}">Newest Created</a></li>
+                <li><a class="dropdown-item {% if sort == 'due_date' %}active{% endif %}" href="?sort=due_date&filter={{ filter }}">Due Date (Soonest)</a></li>
+                <li><a class="dropdown-item {% if sort == 'priority' %}active{% endif %}" href="?sort=priority&filter={{ filter }}">Priority</a></li>
+            </ul>
         </div>
     </div>
     
-    <a href="{% url 'task_create' project.id %}" class="btn btn-sm btn-primary">
-        <i class="bi bi-plus-lg"></i> Add Task
-    </a>
+    <div class="d-flex gap-2">
+        <a href="{% url 'ai_generate_tasks' project.id %}" class="btn btn-sm btn-outline-primary" onclick="return confirm('Generate AI Plan? This will add tasks based on your project description.')">
+            <i class="bi bi-stars"></i> AI Plan
+        </a>
+        
+        <a href="{% url 'task_create' project.id %}" class="btn btn-sm btn-primary">
+            <i class="bi bi-plus-lg"></i> Add Task
+        </a>
+    </div>
 </div>
 
-<div class="list-group shadow-sm">
+<div class="list-group shadow-sm mb-5">
     {% for task in tasks %}
-    <div class="list-group-item d-flex justify-content-between align-items-center">
-        <div class="d-flex align-items-center" style="width: 70%;">
+    <div class="list-group-item d-flex justify-content-between align-items-center action-hover">
+        <div class="d-flex align-items-center" style="width: 80%;">
             <a href="{% url 'task_complete' task.id %}" class="text-decoration-none me-3">
                 <i class="bi {% if task.is_completed %}bi-check-circle-fill text-success{% else %}bi-circle text-secondary{% endif %} fs-4"></i>
             </a>
@@ -68,7 +111,7 @@
                     {{ task.title }}
                 </span>
                 
-                <div class="small mt-1">
+                <div class="small mt-1 d-flex align-items-center flex-wrap gap-2">
                     {% if task.priority == 'H' %}
                         <span class="badge bg-danger">High</span>
                     {% elif task.priority == 'M' %}
@@ -78,7 +121,8 @@
                     {% endif %}
 
                     {% if task.due_date %}
-                        <span class="text-muted ms-2">
+                        {% now "Y-m-d" as todays_date %}
+                        <span class="{% if task.due_date|date:'Y-m-d' < todays_date and not task.is_completed %}text-danger fw-bold{% else %}text-muted{% endif %}">
                             <i class="bi bi-calendar-event me-1"></i> {{ task.due_date|date:"d/m/Y" }}
                         </span>
                     {% endif %}
@@ -98,10 +142,29 @@
         </div>
     </div>
     {% empty %}
-    <div class="list-group-item text-center py-4 text-muted">
-        <i class="bi bi-list-check fs-2"></i>
-        <p class="mb-0">No tasks found for this filter.</p>
+    <div class="list-group-item text-center py-5 text-muted">
+        <div class="mb-3">
+            <i class="bi bi-clipboard-check display-4 text-secondary opacity-50"></i>
+        </div>
+        <h5>No tasks found here.</h5>
+        <p class="small">Try changing filters or generate tasks with AI.</p>
     </div>
     {% endfor %}
 </div>
+
+<script>
+    function toggleDesc(e) {
+        e.preventDefault();
+        const shortDesc = document.getElementById('desc-short');
+        const fullDesc = document.getElementById('desc-full');
+        
+        if (shortDesc.classList.contains('d-none')) {
+            shortDesc.classList.remove('d-none');
+            fullDesc.classList.add('d-none');
+        } else {
+            shortDesc.classList.add('d-none');
+            fullDesc.classList.remove('d-none');
+        }
+    }
+</script>
 {% endblock %}

@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import path, include
-from core.views import (project_list, project_detail, project_create, project_update, project_delete, task_create, task_complete, task_update, task_delete, signup)
+from core.views import (project_list, project_detail, project_create, project_update, project_delete, task_create, task_complete, task_update, task_delete, signup, ai_generate_tasks)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -15,4 +15,5 @@ urlpatterns = [
     path('project/<int:id>/delete/', project_delete, name='project_delete'),
     path('task/<int:id>/edit/', task_update, name='task_update'),
     path('task/<int:id>/delete/', task_delete, name='task_delete'),
+    path('project/<int:project_id>/ai-generate/', ai_generate_tasks, name='ai_generate_tasks'),
 ]
