@@ -59,7 +59,7 @@ Se você deseja clonar e testar este projeto na sua máquina:
 
 ```bash
 # 1. Clone o repositório
-git clone [https://github.com/ghsiqueira/devtracker.git](https://github.com/ghsiqueira/devtracker.git)
+git clone https://github.com/ghsiqueira/devtracker.git
 
 # 2. Entre na pasta
 cd devtracker
@@ -84,7 +84,7 @@ pip install -r requirements.txt
 python manage.py migrate
 
 # 7. Inicie o Servidor
-python manage.py runserver
+python manage.py runserver```
 
 Acesse em: http://127.0.0.1:8000
 
